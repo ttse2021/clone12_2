@@ -1,5 +1,6 @@
-V002 Fri Jun  1 08:12:59 PDT 2018
-Retested with merger of certusr with oracle.
+V004 Thu Jul  5 11:05:20 CDT 2018
+  Initial Checkin for git
+
 
 -------------------------------------
 Todo:
@@ -9,8 +10,3 @@ Consider replacing design of finding run fs by
   Developing and Deploying Customizations in Oracle E-Business Suite Release 12.2 (Doc ID 1577661.1)
   For finding which is run and which is patch
 
-
--------------------------------------
-V001 Tue Sep 19 11:01:06 CDT 2017 jubal
-COMMITTED
-  Initial Version
