@@ -1,28 +1,6 @@
 #!/usr/bin/ksh 
 
-# THis fixes an issue where for some god-fosaken reason, the tr command filter
-# flakes out with EBSapps.env file when run under CHEF.
-# so we replace with perl to convert case.
-#
 
-export ORABASE=<%= node[:clone12_2][:orabase] %>
-
-export ORABASE=${ORABASE?"ORABASE is NOT set"}
-export EAPPSenv=$ORABASE/EBSapps.env
-                
-if [ "X${FILE_EDITION}" == "X" ] ; then
-  echo ". $EAPPSenv RUN"
-        . $EAPPSenv RUN
-fi
-
-if [ ! -f $EAPPSenv ] ; then
-  echo "Cannot find EAPPSenv ... Aborting..."
-  exit -5
-fi
-
-fgrep INPUT_CHOICE $EAPPSenv | fgrep tr
-if [ $? == 0 ] ; then
-  perl -pn -i.bak -e 'if ( /INPUT_CHOICE=`echo/ ) { $_ =~s /tr.*`/perl -nle "print lc"`/;}' $EAPPSenv
-else
-  echo "fix in place, bypassing modification to EBS"
-fi
+echo "########################################"
+     "#   STUB of fix_ebsappsenv.sh.erb      #"
+echo "########################################"

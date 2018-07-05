@@ -4,9 +4,14 @@ Oracle Rapid Clone for EBS 12.2 installation on AIX 7.2
 ##Description
 
 
-Dependency: cookbook aix 2.3.1
+Dependency: cookbook aix 2.3.1 chef_client: 13.9.1
 
-oracle_ebs COOKBOOK Limitations:
+Note: This cookbook is heavily dependent on:
+ 'Cloning Oracle E-Business Suite Release 12.2 with Rapid Clone (Doc ID 1383621.1)'
+ Please read this document to understand the tasks completed by this cookbook.
+
+
+clone12_2 COOKBOOK Limitations:
 
   * Does not support Oracle Database RAC option.
   * Does not support a multi-tier/lpar installation.
@@ -79,8 +84,10 @@ override_attributes(
 * Bootstrap the node, telling Chef to install itself, and install the 
   Oracle E-Business Suite environment for the DEMO Database, 'VIS'.
 
-  Ex: knife bootstrap <TARGETNODE> -x root -P <root_password> -N <TARGETNODE> -r role[clone12_2]
-    where TARGETNODE is the AIX 7.1 LPAR.
+
+  Ex: knife bootstrap <TargetNode> -x root -P <password> --bootstrap-version 13.9.1 \
+        -N <TargetNode> -r 'role[cl50]' -y -V
+      where <TARGETNODE> is the AIX 7.2 target LPAR.
 
 * This Install will take plenty of time, so find a good book to read.
   (On my fastest machine, it took over 12 hours, on slower machines/disks, can be 20 hours)
@@ -95,8 +102,10 @@ override_attributes(
 
 ## Chef
 
-The oracle_ebs cookbook was tested using Chef-Client 12.14.89, in combo
-with the open source Chef Server 12, as well as with Hosted Chef.
+The clone12_2 cookbook was tested using:
+   chef_dk:       3.0.36-1
+   chef_server: 12.17.33-1
+   chef_client:     13.9.1
 
 ## Platforms
 
