@@ -1,0 +1,31 @@
+#!/usr/bin/ksh
+
+export stgtmp="<%= node[:clone12_2][:fs_stage][:tmp] %>"
+export stglog="<%= node[:clone12_2][:fs_stage][:log] %>"
+export stgbin="<%= node[:clone12_2][:fs_stage][:bin] %>"
+export   HTTP="<%= node[:clone12_2][:wget_cert] %>"
+
+bname=`basename $0 .sh`
+echo "BNAME: $bname"
+
+export stgtmp=${stgtmp?}
+date
+echo cd $stgtmp
+     cd $stgtmp
+  
+echo "(cd $stgtmp; wget --no-parent -r  http://$HTTP )"
+      (cd $stgtmp; wget --no-parent -r  http://$HTTP )
+  
+FILE=$stgtmp/$HTTP/Latest.CERT.tgz
+if [ ! -f $FILE ] ; then
+  echo "Cannot find: $FILE. Aborting ..."
+  exit -5
+else
+  cp $FILE    $stgbin
+fi
+
+  
+ts=`date`
+
+echo $ts
+echo COMPLETED

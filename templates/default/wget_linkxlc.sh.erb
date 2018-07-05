@@ -1,0 +1,61 @@
+#!/usr/bin/ksh
+
+   export HTTP="<%= node[:clone12_2][:ebsprep][:wget_xlinkxlc]  %>"
+export workdir="<%= node[:clone12_2][:ebsprep][:workingdir] %>"
+
+export tgtdir=$workdir/tmp1
+export CHUNKS=linkxlc
+export chunkhome=$workdir/$CHUNKS
+
+date
+
+if [ ! -d $chunkhome ] ; then
+  if [ -d $tgtdir ] ; then
+    echo rm -rf $tgtdir
+         rm -rf $tgtdir
+  fi
+  
+  if [ ! -d $tgtdir ] ; then
+    echo mkdir $tgtdir
+         mkdir $tgtdir
+  fi
+  
+  echo cd    $tgtdir
+       cd    $tgtdir
+  
+  echo "wget --no-parent -r "http://$HTTP" > $workdir/wget_linkxlc.out 2>&1"
+        wget --no-parent -r "http://$HTTP" > $workdir/wget_linkxlc.out 2>&1
+  
+  
+  chunkdir=`find $tgtdir -type d -name $CHUNKS`
+  
+  echo $chunkdir
+  if [ ! -d $chunkhome ] ; then
+    echo mv $chunkdir $chunkhome
+         mv $chunkdir $chunkhome
+  fi
+fi
+
+if [ -d $chunkhome ] ; then
+  echo rm -rf $tgtdir
+       rm -rf $tgtdir
+fi
+
+if [ -f $chunkhome/index.html ] ; then
+  echo ls $chunkhome/index.ht*
+  echo rm -rf $chunkhome/index.ht*
+       rm -rf $chunkhome/index.ht*
+fi
+
+lslpp -l vac.aix53.lib vacpp.cmp.rte vacpp.cmp.tools
+if [ $? != 0 ] ; then
+  echo "(cd $chunkhome;  /usr/lib/instl/sm_inst installp_cmd -a -Q -d ./ -f _all_latest -c -N -g -X -G)"
+        (cd $chunkhome;  /usr/lib/instl/sm_inst installp_cmd -a -Q -d ./ -f _all_latest -c -N -g -X -G)
+  ln -s /usr/vacpp/bin/linkxlC /usr/bin
+  
+fi
+ts=`date`
+echo $ts > $chunkhome/.downloaded
+
+echo $ts
+echo COMPLETED

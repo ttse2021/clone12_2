@@ -1,0 +1,21 @@
+#!/usr/bin/ksh
+
+export ORABASE=<%= node[:clone12_2][:orabase] %>
+
+cnt=0
+runlist=""
+for i in \
+  $ORABASE/fs1/EBSapps/appl/VIS_*.env \
+  $ORABASE/fs2/EBSapps/appl/VIS_*.env
+do
+  if [ -f $i ] ; then
+    fgrep 'FILE_EDITION="run"' $i > /dev/null
+    if [ $? == 0 ] ; then runlist="$runlist $i"; ((cnt=cnt+1)) ; fi
+  fi
+done
+
+if (( $cnt > 1 )) ; then echo "Too many env files with run file_edition"; exit -5; fi
+if [[ "X$runlist" == "X" ]] ; then echo "Cannot find run FILE_EDITION. Aborting"; exit -5; fi
+
+echo $runlist | fgrep fs1 > /dev/null ; if [ $? == 0 ] ; then echo "fs1"; fi
+echo $runlist | fgrep fs2 > /dev/null ; if [ $? == 0 ] ; then echo "fs2"; fi

@@ -1,0 +1,68 @@
+log "
+     **********************************************************************
+     *                                                                    * 
+     *        Recipe:#{recipe_name}     *
+     *                                                                    * 
+     * This recipe is conditional. You many not want to add swap of the   * 
+     * orcle recommended swap size (which is 1/2 the memory size).        * 
+     *                                                                    * 
+     * By default, we enforce a fixed size swap requirement. However,     * 
+     * if you wish to ignore this requirement, modify the attribute:      * 
+     *                                                                    * 
+     *     default[:machprep][:swapspace_ignore] = true                   * 
+     *                                                                    * 
+     ********************************************************************** 
+    "
+
+thisdir  = node[:clone12_2][:machprep][:workingdir]
+minMem   = node[:clone12_2][:machprep][:minimum_memory]
+swapsize = node[:clone12_2][:machprep][:swapspace]
+ignore   = node[:clone12_2][:machprep][:swapspace_ignore]
+
+
+  # download the addswap.pl file to the machine
+  #
+cookbook_file "#{thisdir}/addswap.pl" do
+  user 'root'
+  group node[:root_group]
+  mode '0775'
+  source 'addswap.pl'
+end
+
+
+  ######################################################
+  # convert the OHAI swap memory to integer in MEGS
+curswap = node[:memory][:swap][:total].sub('kB', '')
+curswap = curswap.to_i /  1024.to_i
+
+  #boolean to see if we should modify swap. the only if
+  # does NOT like conditional expression. So either T or F
+  #
+swap_is_too_small = curswap < swapsize
+
+
+  # this was painful code. Track its correct.
+log    "CURSWAP: #{curswap} SWAPSPACE: #{swapsize}"
+log    "swap_is_too_small: #{swap_is_too_small}"
+
+  # Do we add more swap space?
+unless ignore
+  execute "check_swap_size_#{swapsize}" do
+    user 'root'
+    group node[:root_group]
+    command "perl #{thisdir}/addswap.pl -s #{swapsize}"
+    only_if  "#{swap_is_too_small}"
+  end
+end
+
+
+  #########################################################
+  # CHECK MIN MEMORY NEEDS
+  # convert the OHAI total memory to integer in MEGS
+actualMemory = node[:memory][:total].sub('kB', '')
+actualMemory = actualMemory.to_i /  1024.to_i
+
+if ( minMem.to_i > actualMemory )
+  Chef::Log.warn("Failed Memory Check: actualMemory:${actualMemory} is less than Minimum: #{minMem}")
+  raise "Not enough memory in system: #{actualMemory} MBs Required: #{minMem} MBs"
+end

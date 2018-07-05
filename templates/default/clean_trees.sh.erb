@@ -1,0 +1,86 @@
+#!/usr/bin/ksh
+
+set -x 
+###################################################################
+# HISTORY
+# Vers:   Date:       Description
+# v1.10   12/12/17    Original tracking
+# v1.11   01/30/18    Updated removing dep on RUNFS
+###################################################################
+VER=1.11
+
+export ORABASE=<%= node[:clone12_2][:orabase] %>
+
+#export ECHO=echo
+
+function find_run_fs
+{
+  set -x
+  cnt=0
+  runlist=""
+  for i in \
+    $ORABASE/fs1/EBSapps/appl/VIS_*.env \
+    $ORABASE/fs2/EBSapps/appl/VIS_*.env
+  do
+    if [ -f $i ] ; then
+      fgrep 'FILE_EDITION="run"' $i > /dev/null
+      if [ $? == 0 ] ; then runlist="$runlist $i"; ((cnt=cnt+1)) ; fi
+    fi
+  done
+  
+  if (( $cnt > 1 )) ; then echo "Too many env files with run file_edition"; exit -5; fi
+  if [[ "X$runlist" == "X" ]] ; then echo "Cannot find run FILE_EDITION. Aborting"; exit -5; fi
+  
+  echo $runlist | fgrep fs1 > /dev/null ; 
+  if [ $? == 0 ] ; then 
+      RUND="fs1"; 
+    PATCHD="fs2"; 
+  fi
+  echo $runlist | fgrep fs2 > /dev/null ; 
+  if [ $? == 0 ] ; then 
+      RUND="fs2"; 
+    PATCHD="fs1"; 
+  fi
+}
+
+################################################################
+################################################################
+#  Main Program
+################################################################
+################################################################
+
+  # this sets the RUND and PATCHD directory locations
+find_run_fs
+echo RUN:      $RUND
+echo PATCHD: $PATCHD
+
+
+#----------------
+# CLEANING NOW:
+#----------------
+
+# Clean for both trees
+for i in fs1/inst fs1/FMW_Home \
+         fs2/inst fs2/FMW_Home ;
+do
+  eval $ECHO rm -rf $ORABASE/$i &
+done
+
+  # clean the inventory. It gets recreated during the clone
+eval $ECHO rm -rf /d01/oraInventory &
+
+  # remove fs_ne
+eval $ECHO rm -rf $ORABASE/fs_ne &
+
+  #Clean ONLY for patch these directories:
+  #
+eval $ECHO rm -rf $ORABASE/${PATCHD}/EBSapps/10.1.2 &
+eval $ECHO rm -rf $ORABASE/${PATCHD}/EBSapps/appl &
+eval $ECHO rm -rf $ORABASE/${PATCHD}/EBSapps/comn &
+
+wait
+
+eval $ECHO rm -rf $ORABASE/${PATCHD} &
+
+
+echo COMPLETED

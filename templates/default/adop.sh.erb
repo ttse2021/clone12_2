@@ -1,0 +1,80 @@
+#!/usr/bin/ksh
+
+export appspw=<%= node[:clone12_2][:apps_pw] %>
+export  syspw=<%= node[:clone12_2][:system_pw] %>
+export wblspw=<%= node[:clone12_2][:weblogic_pw] %>
+
+
+   # A FUNCTION that displays USAGE and OPTION info
+function show_usage_and_exit
+{
+   printf "\nUsage: $0 -p phase | -s\n"
+   printf "\nphases are: apply, finalize, cutover,cleanup\n"
+   printf "\n-s : print status\n"
+   exit -1
+}
+
+_phase="not_set"
+
+   # Check OPTIONS
+while getopts ":p:s" _option; do
+   case $_option in
+      p) _phase="$OPTARG" ;;
+      s) _status="true"   ;;
+      *) printf "\nInvalid Option Specified: %s\n\n" $OPTARG
+         show_usage_and_exit ;;
+   esac
+done
+shift $(($OPTIND - 1))
+
+case $_phase in
+     'prepare' ) found="prepare";;
+       'apply' ) found="apply";;
+    'finalize' ) found="finalize";;
+     'cutover' ) found="cutover";;
+     'cleanup' ) found="cleanup";;
+     'not_set' ) found="not_set";;
+           *   )
+        show_usage_and_exit;
+        exit 1 ;;
+esac
+
+
+   # ===============
+   # Source Environment if exists
+   # ===============
+function srcenv
+{
+if [ "X${COMMON_TOP}" != "X" ] ; then
+  echo "Already sourced";
+  exit -50;
+fi
+export ORABASE=${ORABASE?"ORABASE is NOT set"}
+export _EBSAPP=$ORABASE/EBSapps.env
+if  [ -f "${_EBSAPP}" ] ; then
+  echo ". ${_EBSAPP} RUN"
+.         ${_EBSAPP} RUN
+  return 0
+else
+  exit -5
+fi
+}
+srcenv
+   # ===============
+
+export  APPL_TOP_NE=${APPL_TOP_NE?}
+
+if [ "X$_status" != "Xtrue" ] ; then
+  if [ "X${_phase}" == "X" ] ; then show_usage_and_exit;  fi
+  echo adop phase=$_phase
+       adop phase=$_phase <<-EOF
+${appspw?}
+${syspw?}
+${wblspw?}
+EOF
+else
+  echo adop -status
+       adop -status <<-EOF
+${appspw?}
+EOF
+fi

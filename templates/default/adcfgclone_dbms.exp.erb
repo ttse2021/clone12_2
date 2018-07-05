@@ -1,0 +1,173 @@
+#!/usr/bin/expect
+
+set appspw  <%= node[:clone12_2][:apps_pw] %>
+set sid     <%= node[:clone12_2][:sid] %>
+set basedir <%= node[:clone12_2][:orabase] %>
+set utl_dir <%= node[:clone12_2][:appltmpdir] %>
+
+#if {[llength $argv] == 0} {
+#  send_user "Usage: $0 APPS_PW sid base_dir utl_dir\n"
+#  exit 1
+#}
+
+send_user "\n#####\n# $appspw $sid $basedir $utl_dir\n#####\n"
+
+
+spawn $basedir/12.1.0/appsutil/clone/bin/adcfgclone.pl dbTier
+
+# 20minute timeout between commands.
+#
+set timeout 1200
+
+
+expect {
+  timeout { send_user "\nFailed to get APPS password prompt\n"; exit 1 }
+  eof     { send_user "\nadcfgclone_dbms.sh failed\n"; exit 1 }
+  "Enter the APPS password : "
+}
+send "$appspw\r"
+
+expect {
+  timeout { send_user "\nTimeout of System Hostname\n"; exit 1}
+  "] : "
+}
+send "\r"
+
+
+expect {
+  timeout { send_user "\nTimeout of Target Instance is RAC\n"; exit 1}
+  "] : "
+}
+send "n\r"
+
+
+expect {
+  timeout { send_user "\nTimeout of Target System Database SID :\n"; exit 1}
+  "Database SID : "
+}
+send "$sid\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of System Base Directory :\n"; exit 1}
+  "Base Directory : "
+}
+send "$basedir\r"
+
+
+expect {
+    timeout { send_user "\nTimeout of Role separation is supported:\n"; exit 1}
+    "Role separation is supported y/n \\\[n\\\] ? : " {
+        send "\r";
+        exp_continue 
+     }
+    "Target System utl_file_dir Directory List : "
+}
+send "$utl_dir\r"
+
+
+expect {
+  timeout { send_user "\nTimeout of DATA_TOP's on Target System [1] :\n"; exit 1}
+  "] :"
+}
+send "1\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of DATA_TOP Directory 1 \n"; exit 1}
+  "] :"
+}
+send "/d01/oracle/VIS/data\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of RDBMS ORACLE_HOME Directory\n"; exit 1}
+  "] :"
+}
+send "/d01/oracle/VIS/12.1.0\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of preserve Display\n"; exit 1}
+  "(y/n)  : "
+}
+send "n\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of Target System Display\n"; exit 1}
+  "] : "
+}
+send "\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of port values\n"; exit 1}
+  "? : "
+}
+send "y\r"
+
+expect {
+  timeout { send_user "\nTimeout of waiting for addlnctl.txt line\n"; exit 1}
+  "addlnctl.txt for"
+}
+
+
+
+expect {
+  timeout { send_user "\nTimeout of EBS Schemas\n"; exit 1}
+  "]) : "
+}
+send "n\r"
+
+
+
+
+expect {
+  timeout { send_user "\nTimeout of password sysadmin user\n"; exit 1}
+  "]) :"
+}
+send "n\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of change the apps password\n"; exit 1}
+  "]) :"
+}
+send "n\r"
+
+
+
+expect {
+  timeout { send_user "\nTimeout of change sys and system passwords\n"; exit 1}
+  "]) :"
+}
+send "n\r"
+
+#expect "Using context file from command line argument:"
+#expect "Starting Database EBS Technology Codelevel Checker"
+#expect "Bugfix XML file version:"
+#expect "Mapping XML file version:"
+#expect "Identifying database release"
+#expect "Database connection successful"
+#expect "Identifying APPS and APPLSYS schema names"
+#expect "Checking for DB-ETCC results table"
+#expect "Checking if InMemory option is enabled"
+#expect "Checking Bugfix XML file for 12"
+#expect "Now checking database ORACLE_HOME"
+#expect "The opatch utility is version 12"
+#expect "Found patch records in the inventory"
+#expect "Checking Mapping XML file for 12"
+#expect "bugfixes are present"
+#expect "VIS successfully
+#expect "Finished prerequisite patch testing"
+expect "Log file for this session:"
+
+expect eof

@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+###################################################################
+#
+# (C) COPYRIGHT International Business Machines Corp. 1985, 1989
+# All Rights Reserved
+# Licensed Materials - Property of IBM
+#
+# This is an IBM Internal Tool delevoped to aid in understanding
+# and examining Siebel Applications.  There is No official support.
+# Use at your own risk. Developed for Siebel 7.7
+###################################################################
+
+###################################################################
+# HISTORY
+# VER:         Date:     Description
+$VER="1.1";  # 07/02/17  Original tracking 
+###################################################################
+
+
+#--------------------------------------------
+#--  Main MAIN Program  ---------------------
+#--------------------------------------------
+
+# make sure that this host is in /etc/hosts file
+#
+$FQDN="<%= node[:fqdn] %>";
+$HOSTNAME="<%= node[:hostname] %>";
+
+if ( $HOSTNAME =~ $FQDN ) {
+  print "\nHostname: $HOSTNAME has fqdn($FQDN) attached. Please remove\n\n";
+  exit(-8);
+}
+print("Hostname is OK\n");
+
+exit(0);

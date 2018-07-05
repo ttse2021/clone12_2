@@ -1,0 +1,166 @@
+#!/usr/bin/expect
+
+# we pass in the location of the run fs directory
+set FSDIR [lindex $argv 0];
+
+set appspw      <%= node[:clone12_2][:apps_pw] %>
+set weblogicpw  <%= node[:clone12_2][:weblogic_pw] %>
+set sid         <%= node[:clone12_2][:sid] %>
+set basedir     <%= node[:clone12_2][:orabase] %>
+set appltmp     <%= node[:clone12_2][:appltmppos] %>
+
+send_user "\n#####\n# $FSDIR $appspw $weblogicpw $sid $basedir $appltmp \n#####\n"
+
+spawn $basedir/$FSDIR/EBSapps/comn/clone/bin/adcfgclone.pl appsTier dualfs
+
+# 4 hour timeout
+#
+set timeout 14400
+
+expect {
+  timeout { send_user "\nFailed to get APPS password prompt\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Enter the APPS password : "
+}
+  send "$appspw\r"
+
+
+expect {
+  timeout { send_user "\nFailed to get weblogic password prompt\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Enter the Weblogic AdminServer password : "
+}
+  send "$weblogicpw\r"
+
+expect {
+  timeout { send_user "\nFailed to add a node\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "] :"
+}
+  send "no\r"
+
+
+expect {
+  timeout { send_user "\nFailed to find System Hostname\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Target System Hostname (virtual or normal) "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to find SID\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Target System Database SID : "
+}
+  send "$sid\r"
+
+expect {
+  timeout { send_user "\nFailed to find Server Node\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to Find Domain Name\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to find Base Directory\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Target System Base Directory : "
+}
+  send "$basedir\r"
+
+expect {
+  timeout { send_user "\nFailed to Instance Home Dir\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Target System Instance Home Directory"
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to preserve Display\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Do you want to preserve the Display"
+}
+  send "n\r"
+
+expect {
+  timeout { send_user "\nFailed to Target System Display\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "Target System Display "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to find System Root Service\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "enabled] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to Web Entry Point Services\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "enabled] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to find Web App Services\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "enabled] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to Batch Processing Svcs\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "enabled] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to Other Services\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "disabled] : "
+}
+  send "\r"
+
+expect {
+  timeout { send_user "\nFailed to find same port values\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "same port values as the source system "
+}
+  send "y\r"
+
+expect {
+  timeout { send_user "\nFailed to find APPLTMP directory\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "] : "
+}
+  send "$appltmp\r"
+
+# ok work is happening here. We have only one other input, when it asks to start svcs...
+#
+
+expect "FMW Pre-requisite check log file location :"
+
+expect "Configuring: Run file system...."
+
+expect "Configuring: Patch file system...."
+
+expect {
+  timeout { send_user "\nFailed to App Svcs for VIS\n"; exit 1 }
+  eof     { send_user "\nadcfgclone appsTier dualfs failed\n"; exit 1 }
+  "startup the Application Services for"
+}
+  send "n\r"
+
+expect "Services not started"
+
+expect eof

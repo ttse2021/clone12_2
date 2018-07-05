@@ -1,0 +1,42 @@
+#!/usr/bin/ksh
+
+##########################################################################
+# This script instructions are defined in doc id: 1330703.1
+#
+# Context in file:
+#  Customers on existing 12.2 systems should already be running at 
+#  least Oracle Web Tier 11.1.1.7 (11gR1 PS6) or higher on the 
+#  source system. These customers must also apply patch 22761451 
+#  with the following steps prior to cloning.
+##########################################################################
+
+stgtmp=<%= node[:clone12_2][:fs_stage][:tmp] %>
+stglog=<%= node[:clone12_2][:fs_stage][:log] %>
+stgbin=<%= node[:clone12_2][:fs_stage][:bin] %>
+
+export stgtmp=${stgtmp?}
+
+export ORABASE=${ORABASE?"ORABASE is NOT set"}
+export EAPPSenv=$ORABASE/EBSapps.env 	
+		
+if [ "X${FILE_EDITION}" == "X" ] ; then
+  echo ". $EAPPSenv RUN"
+        . $EAPPSenv RUN
+fi
+
+patchdir=${stgtmp?}/prereq/aix  
+imgdir=$FMW_HOME/webtier/inventory/Scripts/prereq/aix
+
+pname=`basename $0`
+resfile=$stgtmp/dircmp.$pname.out
+echo "dircmp -s -w 132 $patchdir  $imgdir"
+      dircmp -s -w 132 $patchdir  $imgdir  > $resfile 2>&1
+
+if [[ -f $resfile ]] && [[ ! -s $resfile ]]; then 
+  echo "OK: directories are the same."
+  exit 0
+fi
+
+echo "directories are NOT the same. Exiting"
+exit -255;
+
