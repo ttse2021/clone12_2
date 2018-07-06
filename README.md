@@ -4,11 +4,16 @@ Oracle Rapid Clone for EBS 12.2 installation on AIX 7.2
 ##Description
 
 
-Dependency: cookbook aix 2.3.1 chef_client: 13.9.1
+Dependency: 
+  * aix 2.3.1 
+  * chef_client: 13.9.1
 
 Note: This cookbook is heavily dependent on:
  'Cloning Oracle E-Business Suite Release 12.2 with Rapid Clone (Doc ID 1383621.1)'
  Please read this document to understand the tasks completed by this cookbook.
+
+Note: This cookbook relies on version 13.9.1 of AIX Chef Client. See the bootstrap
+command for how to specifiy the version of chef client.
 
 
 clone12_2 COOKBOOK Limitations:
@@ -16,8 +21,8 @@ clone12_2 COOKBOOK Limitations:
   * Does not support Oracle Database RAC option.
   * Does not support a multi-tier/lpar installation.
   * Has not been tested on any other operating systems other than AIX 7.2
-  * Installs both application and database on the same LPAR under user 'oracle'
-  * Must have a working EBS 12.2 Source environment that you whish to clone.
+  * Assumes both application and database on the same LPAR under user 'oracle'
+  * Must have a working EBS 12.2 Source environment that you wish to clone.
 
 NOTE: Oracle E-Business Suite requires valid licenses to install.
 It is expected that the user of this cookbook follows all licensing
@@ -31,12 +36,11 @@ requirements of Oracle EBS.
 * It is assumed that all the operations from Section 1 to 
   Section 3.2 have been completed on the SOURCE machine 
   and then a compressed tar image is copied and available on the Target machine
-* Create your staging directory on the Target AIX 7.2 LPAR
+* Cookbook will create your staging directory on the Target AIX 7.2 LPAR
 
 
 ```'
-  clone12_2.rb (Role file)
-  ----------------------------------------------------------------------
+clone12_2.rb (Role file)
 name 'cl50'
 description 'Role applied to clone of EBS'
 
@@ -45,49 +49,51 @@ run_list 'recipe[clone12_2]'
 override_attributes(
  {
    'clone12_2' => {
-      # Provides support for versions
-      # options are 1226 and 1227. Default is 1227
-      'wget_version' => '1227',
-      # 
-      # Expects 2 disks of 400GB each. 2 Files systems /d01 installs EBS
-      # /d02 is the staging directory for installation.
-      'machprep' => {
-         'newvgs'       =>  [
-              #    vgname,     ppsiz(MB),                 hdisks [,,]
-              #----------      ----------     -----------------------
-                'ebsclone',         '128',     [ 'hdisk1', 'hdisk2', ]
-           ],
-         'newfs'        =>  [
-                #mountpoint         size        volgroup    logfile   logsize(MB)
-                #__________   __________      __________    _______   ___________
-                     '/d01',      '395G',      'ebsclone',  'd01log', '800',
-                     '/d02',      '395G',      'ebsclone',  'd02log', '800',
-           ],
-       },
-      # will write the /etc/hosts entries with thes values
-      # Modify the values to your environment. These are just for example.
-      'ebsprep'            => {
-         'etchosts'        => {
-             'triplets'    => [
-               '127.0.0.1',        'localhost.localdomain',        [ 'localhost', 'loopback',],
-               '192.168.1.11',    'hostname.pbm.ihost.com',         [ 'hostname',],
-               ]
-               }
-       }
+     # Provides support for versions
+     # options are 1226 and 1227. Default is 1227
+     'wget_version' => '1227',
+     # 
+     # Expects 2 disks of 400GB each. 2 Files systems /d01 installs EBS
+     # /d02 is the staging directory for installation.
+     'machprep' => {
+       'newvgs'       =>  [
+         #    vgname,     ppsiz(MB),                 hdisks [,,]
+         #----------      ----------     -----------------------
+           'ebsclone',         '128',      [ 'hdisk1', 'hdisk2']
+         ],
+       'newfs'        =>  [
+           #mountpoint         size        volgroup    logfile   logsize(MB)
+           #__________   __________      __________    _______   ___________
+                '/d01',      '395G',      'ebsclone',  'd01log', '800',
+                '/d02',      '395G',      'ebsclone',  'd02log', '800',
+         ],
+      },
+     # will write the /etc/hosts entries with thes values
+     # Modify the values to your environment. These are just for example.
+     'ebsprep'            => {
+       'etchosts'        => {
+           'triplets'    => [
+             '127.0.0.1',    'localhost.localdomain',  [ 'localhost', 'loopback',],
+             '192.168.1.11', 'hostname.pbm.ihost.com', [ 'hostname',],
+             ]
+        }
+      }
     }
  }
 )
 
-  ----------------------------------------------------------------------
 ```
 
-* Bootstrap the node, telling Chef to install itself, and install the 
-  Oracle E-Business Suite environment for the DEMO Database, 'VIS'.
+* Use the bootstrap command, telling Chef to install itself with the client
+verson as see below.
+  
 
 
+```'
   Ex: knife bootstrap <TargetNode> -x root -P <password> --bootstrap-version 13.9.1 \
         -N <TargetNode> -r 'role[cl50]' -y -V
       where <TARGETNODE> is the AIX 7.2 target LPAR.
+``'
 
 * This Install will take plenty of time, so find a good book to read.
   (On my fastest machine, it took over 12 hours, on slower machines/disks, can be 20 hours)
@@ -97,15 +103,15 @@ override_attributes(
 
 ## Oracle EBS:
 
-  New Oracle E-Business Suite R12 Operating System and Tools Requirements 
-  on IBM AIX on Power Systems (Doc ID 1294357.1)
+This cookbook has only been tested with versions 12.2.6 and 12.2.7 of Oracle EBusiness Suite (EBS).
+
 
 ## Chef
 
 The clone12_2 cookbook was tested using:
-   chef_dk:       3.0.36-1
-   chef_server: 12.17.33-1
-   chef_client:     13.9.1
+  *  chef_dk:       3.0.36-1
+  *  chef_server: 12.17.33-1
+  *  chef_client:     13.9.1
 
 ## Platforms
 
@@ -113,18 +119,10 @@ The clone12_2 cookbook was tested using:
 
 Note: clone12_2 cookbook has not been tested on AIX 7.1, and 6.1.
 
-## DOCUMENTATION/FILES
-
-
-# Miscellaneous
-
 ## Recipes
 
 Follow the file recipes/default.rb for the order of included recipe files
 
-##Usage Notes
-
-* .rsp files are used. Feel free to replace response files with your own
 
 Contributing
 ============
